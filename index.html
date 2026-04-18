@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SATOSHI MACHINE — Bitcoin Purchasing Power</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Orbitron:wght@700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --orange: #f7931a;
+  --ob1: rgba(247,147,26,0.15);
+  --ob2: rgba(247,147,26,0.35);
+  --bg:  #050709;
+  --bg2: #0a0e14;
+  --bg3: #0f1620;
+  --white: #f0ebe2;
+  --text: #c8bfb0;
+  --dim: #4a5a6a;
+  --serif: 'Cormorant Garamond', serif;
+  --orb: 'Orbitron', sans-serif;
+  --mono: 'Share Tech Mono', monospace;
+}
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--serif); min-height: 100vh; overflow-x: hidden; }
+
+/* subtle grid */
+body::before { content:''; position:fixed; inset:0; background-image: linear-gradient(rgba(247,147,26,.02) 1px,transparent 1px), linear-gradient(90deg,rgba(247,147,26,.02) 1px,transparent 1px); background-size:80px 80px; pointer-events:none; z-index:0; }
+body::after  { content:''; position:fixed; inset:0; background: radial-gradient(ellipse 70% 40% at 50% 0%, rgba(247,147,26,.05), transparent 70%); pointer-events:none; z-index:0; }
+
+/* ── HEADER ── */
+header {
+  position: relative; z-index: 10;
+  height: 78px; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 52px;
+  background: rgba(5,7,9,.97);
+  border-bottom: 1px solid var(--ob1);
+  backdrop-filter: blur(18px);
+  animation: fadeDown .5s ease both;
+}
+.logo { display: flex; align-items: center; gap: 16px; }
+/* animated hourglass SVG */
+.hg { display:block; animation: hg-flip 5s ease-in-out infinite; transform-origin:50% 50%; filter: drop-shadow(0 0 8px rgba(247,147,26,.5)); }
+@keyframes hg-flip {
+  0%,40%  { transform: rotate(0deg) scale(1); }
+  46%     { transform: rotate(0deg) scale(1.1); }
+  50%     { transform: rotate(180deg) scale(1.1); filter: drop-shadow(0 0 18px rgba(247,147,26,.9)); }
+  56%,100%{ transform: rotate(180deg) scale(1); }
+}
+.logo-words { display:flex; flex-direction:column; gap:3px; }
+.logo-name {
+  font-family: var(--orb); font-size: 18px; font-weight: 900; letter-spacing: 6px; color: var(--white);
+  position: relative; overflow: hidden;
+}
+.logo-name span { color: var(--orange); }
+/* shimmer sweep */
+.logo-name::after { content:''; position:absolute; top:0; left:-80%; width:55%; height:100%; background: linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent); animation: shimmer 5s ease-in-out infinite; pointer-events:none; }
+@keyframes shimmer { 0%{left:-80%;opacity:0} 10%{opacity:1} 45%{left:150%;opacity:1} 46%,100%{left:150%;opacity:0} }
+.logo-sub { font-family: var(--mono); font-size: 9px; letter-spacing: 3px; color: var(--dim); text-transform: uppercase; }
+.live-pill { display:flex; align-items:center; gap:7px; font-family:var(--mono); font-size:10px; color:var(--orange); letter-spacing:2px; }
+.ldot { width:6px; height:6px; border-radius:50%; background:var(--orange); box-shadow:0 0 7px var(--orange); animation:blink 2s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.15} }
+@keyframes fadeDown { from{opacity:0;transform:translateY(-12px)} to{opacity:1;transform:translateY(0)} }
+
+/* ── PAGE ── */
+.page { position:relative; z-index:1; max-width:900px; margin:0 auto; padding:52px 40px 120px; }
+
+/* ── HEADLINE ── */
+.headline { text-align:center; margin-bottom:52px; animation: fadeUp .6s ease .1s both; }
+.headline h2 { font-family:var(--serif); font-size:50px; font-weight:300; color:var(--white); line-height:1.2; margin-bottom:12px; }
+.headline h2 em { font-style:italic; color:var(--orange); }
+.headline p { font-family:var(--serif); font-size:17px; font-weight:300; font-style:italic; color:var(--dim); }
+@keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+
+/* ── INPUT CARD ── */
+.input-card {
+  background: var(--bg2); border: 1px solid var(--ob2); border-radius:4px;
+  padding: 32px 36px; margin-bottom:24px;
+  animation: fadeUp .6s ease .15s both;
+}
+.card-label { font-family:var(--mono); font-size:9px; letter-spacing:4px; color:var(--dim); text-transform:uppercase; margin-bottom:14px; display:flex; align-items:center; gap:10px; }
+.card-label::after { content:''; flex:1; height:1px; background:linear-gradient(to right,var(--ob2),transparent); }
+.input-row { display:grid; grid-template-columns:1fr 160px; gap:12px; margin-bottom:12px; }
+.field { display:flex; flex-direction:column; gap:7px; }
+.field-lbl { font-family:var(--mono); font-size:9px; letter-spacing:2px; color:var(--dim); text-transform:uppercase; }
+input[type=text], select {
+  background: rgba(255,255,255,.04); border: 1px solid rgba(247,147,26,.2); border-radius:3px;
+  color: var(--white); font-family:var(--serif); font-size:20px; padding:13px 16px;
+  outline:none; width:100%; transition:border-color .2s, background .2s;
+}
+input[type=text]::placeholder { color:rgba(255,255,255,.18); font-style:italic; }
+input[type=text]:focus, select:focus { border-color:var(--orange); background:rgba(247,147,26,.06); }
+select option { background:#0a0e14; color:var(--white); }
+.hint { font-family:var(--mono); font-size:9px; letter-spacing:.5px; color:var(--dim); display:flex; align-items:flex-start; gap:6px; line-height:1.5; }
+.hint::before { content:'⚡'; color:var(--orange); flex-shrink:0; }
+.calc-btn {
+  width:100%; margin-top:16px;
+  background:var(--orange); color:#000; border:none; border-radius:3px;
+  font-family:var(--orb); font-size:13px; font-weight:900; letter-spacing:4px;
+  padding:18px; cursor:pointer;
+  box-shadow:0 0 22px rgba(247,147,26,.25);
+  transition:background .2s, box-shadow .2s, transform .1s;
+}
+.calc-btn:hover { background:#ffaa44; box-shadow:0 0 32px rgba(247,147,26,.45); }
+.calc-btn:active { transform:scale(.99); }
+.calc-btn:disabled { opacity:.45; cursor:not-allowed; }
+
+/* ── CHIPS ── */
+.chips-section { margin-bottom:36px; animation:fadeUp .6s ease .25s both; }
+.chips-label { font-family:var(--mono); font-size:9px; letter-spacing:3px; color:var(--dim); text-transform:uppercase; margin-bottom:10px; }
+.chips { display:flex; flex-wrap:wrap; gap:7px; }
+.chip {
+  font-family:var(--mono); font-size:10px; letter-spacing:.5px;
+  background:transparent; border:1px solid rgba(255,255,255,.08); border-radius:3px;
+  padding:7px 13px; cursor:pointer; color:var(--dim);
+  transition:all .18s cubic-bezier(.34,1.56,.64,1);
+  user-select:none;
+}
+.chip:hover { border-color:var(--ob2); color:var(--orange); background:var(--ob1); transform:translateY(-2px); }
+.chip.active { border-color:var(--orange); color:var(--orange); background:var(--ob1); }
+
+/* ── ERROR ── */
+.err { display:none; background:rgba(255,80,80,.07); border:1px solid rgba(255,80,80,.2); border-radius:3px; padding:13px 16px; font-family:var(--mono); font-size:10px; color:#ff8888; letter-spacing:.5px; line-height:1.6; margin-bottom:16px; }
+.err.show { display:block; }
+
+/* ── LOADING ── */
+.loader { display:none; text-align:center; padding:52px 0; }
+.loader.show { display:block; }
+.spin { width:40px; height:40px; border:2px solid rgba(247,147,26,.15); border-top-color:var(--orange); border-radius:50%; margin:0 auto 18px; animation:spin .7s linear infinite; }
+@keyframes spin { to{transform:rotate(360deg)} }
+.loader-text { font-family:var(--mono); font-size:10px; letter-spacing:3px; color:var(--dim); text-transform:uppercase; }
+.loader-sub { font-family:var(--serif); font-size:14px; font-style:italic; color:var(--dim); margin-top:6px; }
+
+/* ── RESULTS ── */
+.results { display:none; animation:fadeUp .5s ease forwards; }
+.results.show { display:block; }
+.divider { display:flex; align-items:center; gap:14px; font-family:var(--mono); font-size:9px; letter-spacing:4px; color:var(--dim); text-transform:uppercase; margin:0 0 28px; }
+.divider::before,.divider::after { content:''; flex:1; height:1px; background:linear-gradient(to right,transparent,var(--ob2)); }
+.divider::after { background:linear-gradient(to left,transparent,var(--ob2)); }
+
+/* result title */
+.res-title { font-family:var(--serif); font-size:38px; font-weight:300; color:var(--white); text-align:center; margin-bottom:6px; }
+.res-meta { font-family:var(--mono); font-size:9px; letter-spacing:2px; color:var(--dim); text-align:center; margin-bottom:36px; text-transform:uppercase; }
+
+/* two col compare */
+.compare { display:grid; grid-template-columns:1fr 1fr; border:1px solid var(--ob1); border-radius:4px; overflow:hidden; margin-bottom:20px; }
+.col { padding:30px 28px; }
+.col-usd { background:var(--bg2); border-right:1px solid var(--ob1); }
+.col-btc { background:var(--bg3); }
+.col-tag { font-family:var(--mono); font-size:8px; letter-spacing:4px; text-transform:uppercase; margin-bottom:20px; }
+.col-usd .col-tag { color:var(--dim); }
+.col-btc .col-tag { color:var(--orange); }
+.price-era { font-family:var(--mono); font-size:8px; letter-spacing:2px; color:var(--dim); text-transform:uppercase; margin-bottom:5px; }
+.price-amt { font-family:var(--serif); font-size:36px; font-weight:500; line-height:1; margin-bottom:4px; }
+.col-usd .price-amt.then { color:var(--white); }
+.col-usd .price-amt.now  { color:#ff9999; }
+.col-btc .price-amt.then { color:var(--orange); }
+.col-btc .price-amt.now  { color:#88ffcc; }
+.price-note { font-family:var(--serif); font-size:12px; font-style:italic; color:var(--dim); }
+.sep { height:1px; background:rgba(255,255,255,.05); margin:18px 0; }
+.change { display:flex; align-items:center; gap:10px; }
+.ch-icon { font-size:18px; }
+.ch-val { font-family:var(--orb); font-size:19px; font-weight:700; line-height:1; }
+.col-usd .ch-val { color:#ff9999; }
+.col-btc .ch-val { color:#88ffcc; }
+.ch-desc { font-family:var(--serif); font-style:italic; font-size:12px; color:var(--dim); margin-top:3px; }
+
+/* stats */
+.stats { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px; }
+.stat { background:var(--bg2); border:1px solid var(--ob1); border-radius:4px; padding:16px 18px; position:relative; overflow:hidden; transition:border-color .2s; }
+.stat:hover { border-color:var(--ob2); }
+.stat::after { content:''; position:absolute; bottom:0; left:20%; right:20%; height:1px; background:var(--orange); opacity:.3; }
+.stat-lbl { font-family:var(--mono); font-size:8px; letter-spacing:2px; color:var(--dim); text-transform:uppercase; margin-bottom:8px; }
+.stat-val { font-family:var(--orb); font-size:20px; font-weight:900; color:var(--orange); filter:drop-shadow(0 0 5px rgba(247,147,26,.4)); }
+
+/* verdict */
+.verdict { background:var(--bg2); border:1px solid var(--ob1); border-left:3px solid var(--orange); border-radius:0 4px 4px 0; padding:24px 28px; margin-bottom:20px; }
+.verdict-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.verdict-label { font-family:var(--mono); font-size:8px; letter-spacing:4px; color:var(--orange); text-transform:uppercase; }
+.share-btn { font-family:var(--orb); font-size:9px; font-weight:700; letter-spacing:2px; background:transparent; border:1px solid var(--ob2); color:var(--orange); border-radius:3px; padding:7px 14px; cursor:pointer; transition:all .2s; }
+.share-btn:hover { background:var(--ob1); border-color:var(--orange); }
+.share-btn.done { background:rgba(0,230,118,.1); border-color:#88ffcc; color:#88ffcc; }
+.verdict-text { font-family:var(--serif); font-size:18px; font-weight:300; color:var(--white); line-height:1.75; }
+.verdict-text strong { color:var(--orange); font-weight:600; }
+.verdict-text em { color:#88ffcc; font-style:italic; }
+
+/* table */
+.hist { background:var(--bg2); border:1px solid var(--ob1); border-radius:4px; padding:22px 24px; margin-bottom:20px; overflow-x:auto; }
+.hist-title { font-family:var(--mono); font-size:8px; letter-spacing:3px; color:var(--dim); text-transform:uppercase; margin-bottom:16px; }
+table { width:100%; border-collapse:collapse; min-width:480px; }
+th { font-family:var(--mono); font-size:8px; letter-spacing:2px; color:var(--dim); text-transform:uppercase; text-align:left; padding:0 0 10px; border-bottom:1px solid var(--ob1); }
+td { font-family:var(--mono); font-size:11px; padding:9px 0; border-bottom:1px solid rgba(255,255,255,.03); color:var(--text); }
+tr:last-child td { border-bottom:none; }
+td.yr { color:var(--dim); font-size:10px; }
+td.bp { color:var(--orange); }
+td.wn { color:#88ffcc; }
+td.gp { color:#88ffcc; font-weight:bold; }
+td.gn { color:#ff9999; }
+
+/* credit */
+.credit { text-align:center; padding:16px 0; font-family:var(--mono); font-size:10px; letter-spacing:2px; color:var(--dim); }
+.credit a { color:var(--orange); text-decoration:none; border-bottom:1px solid var(--ob2); padding-bottom:1px; transition:border-color .2s; }
+.credit a:hover { border-color:var(--orange); }
+
+/* ticker */
+.ticker { position:fixed; bottom:0; left:0; right:0; height:42px; background:rgba(5,7,9,.98); border-top:1px solid var(--ob1); display:flex; align-items:center; overflow:hidden; z-index:20; }
+.t-tag { background:var(--orange); color:#000; font-family:var(--orb); font-size:9px; font-weight:900; letter-spacing:3px; padding:0 16px; height:100%; display:flex; align-items:center; flex-shrink:0; }
+.t-scroll { flex:1; overflow:hidden; white-space:nowrap; }
+.t-inner { display:inline-block; animation:scroll 70s linear infinite; font-family:var(--mono); font-size:10px; letter-spacing:1.5px; color:var(--dim); }
+@keyframes scroll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+.t-inner .o { color:var(--orange); }
+
+/* mobile */
+@media(max-width:680px) {
+  header { padding:0 18px; height:64px; }
+  .logo-sub { display:none; }
+  .logo-name { font-size:14px; letter-spacing:3px; }
+  .page { padding:28px 16px 100px; }
+  .headline h2 { font-size:32px; }
+  .input-card { padding:22px 18px; }
+  .input-row { grid-template-columns:1fr; }
+  input[type=text], select { font-size:17px; }
+  .compare { grid-template-columns:1fr; }
+  .col-usd { border-right:none; border-bottom:1px solid var(--ob1); }
+  .stats { grid-template-columns:1fr 1fr; }
+  .chips { gap:6px; }
+  .chip { font-size:9px; padding:6px 10px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <!-- Animated SVG Hourglass -->
+    <svg class="hg" width="44" height="58" viewBox="0 0 44 58" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <clipPath id="ct"><polygon points="3,5 41,5 41,6 22,28 3,6"/></clipPath>
+        <clipPath id="cb"><polygon points="3,53 41,53 41,52 22,30 3,52"/></clipPath>
+      </defs>
+      <!-- frame -->
+      <polygon points="3,5 41,5 41,6 22,28 3,6" fill="rgba(247,147,26,.1)" stroke="#f7931a" stroke-width="1.5" stroke-linejoin="round"/>
+      <polygon points="3,53 41,53 41,52 22,30 3,52" fill="rgba(247,147,26,.1)" stroke="#f7931a" stroke-width="1.5" stroke-linejoin="round"/>
+      <rect x="1" y="1" width="42" height="5" rx="2" fill="#f7931a"/>
+      <rect x="1" y="52" width="42" height="5" rx="2" fill="#f7931a"/>
+      <!-- top sand -->
+      <g clip-path="url(#ct)"><rect id="st" x="3" y="5" width="38" height="24" fill="#f7931a" opacity=".85"/></g>
+      <!-- bottom sand -->
+      <g clip-path="url(#cb)"><rect id="sb" x="3" y="30" width="38" height="24" fill="#f7931a" opacity=".85"/></g>
+      <!-- stream -->
+      <line x1="22" y1="28" x2="22" y2="30" stroke="#f7931a" stroke-width="1.5" opacity=".9">
+        <animate attributeName="opacity" values=".9;.2;.9" dur=".35s" repeatCount="indefinite"/>
+      </line>
+      <circle cx="22" cy="29" r="1.5" fill="#f7931a" opacity=".6">
+        <animate attributeName="r" values="1;2.5;1" dur=".35s" repeatCount="indefinite"/>
+      </circle>
+    </svg>
+    <div class="logo-words">
+      <div class="logo-name">SATOSHI <span>MACHINE</span></div>
+      <div class="logo-sub">Bitcoin Purchasing Power Calculator</div>
+    </div>
+  </div>
+  <div class="live-pill"><div class="ldot"></div>LIVE BTC · COINGECKO</div>
+</header>
+
+<div class="page">
+
+  <div class="headline">
+    <h2>The Dollar <em>Steals.</em><br>Bitcoin <em>Multiplies.</em></h2>
+    <p>Type anything. See what it cost in Bitcoin then — and what that Bitcoin is worth now.</p>
+  </div>
+
+  <div class="input-card">
+    <div class="card-label">What do you want to look up?</div>
+    <div class="input-row">
+      <div class="field">
+        <div class="field-lbl">Item or purchase</div>
+        <input type="text" id="q" placeholder="bottle of champagne, trip to Japan, Chanel perfume..." autocomplete="off">
+      </div>
+      <div class="field">
+        <div class="field-lbl">Year</div>
+        <select id="yr">
+          <option value="2010">2010</option><option value="2011">2011</option>
+          <option value="2012">2012</option><option value="2013">2013</option>
+          <option value="2014">2014</option><option value="2015" selected>2015</option>
+          <option value="2016">2016</option><option value="2017">2017</option>
+          <option value="2018">2018</option><option value="2019">2019</option>
+          <option value="2020">2020</option><option value="2021">2021</option>
+          <option value="2022">2022</option><option value="2023">2023</option>
+          <option value="2024">2024</option>
+        </select>
+      </div>
+    </div>
+    <div class="hint">Type any item — include a city for local prices (e.g. "3BR apartment in Miami"). AI looks up the real historical price.</div>
+    <div class="err" id="err"></div>
+    <button class="calc-btn" id="btn" onclick="run()">CALCULATE ₿</button>
+  </div>
+
+  <div class="chips-section">
+    <div class="chips-label">Popular lookups</div>
+    <div class="chips">
+      <div class="chip" onclick="load('3 bedroom apartment in New York City',2015,this)">🗽 3BR NYC 2015</div>
+      <div class="chip" onclick="load('3 bedroom house in Miami',2016,this)">🌴 House Miami 2016</div>
+      <div class="chip" onclick="load('studio apartment in San Francisco',2017,this)">🌁 Studio SF 2017</div>
+      <div class="chip" onclick="load('median home price Austin Texas',2020,this)">🤠 Austin Home 2020</div>
+      <div class="chip" onclick="load('Toyota Camry',2015,this)">🚗 Toyota Camry 2015</div>
+      <div class="chip" onclick="load('annual college tuition United States',2015,this)">🎓 College Tuition 2015</div>
+      <div class="chip" onclick="load('Starbucks latte',2016,this)">☕ Starbucks 2016</div>
+      <div class="chip" onclick="load('Big Mac',2015,this)">🍔 Big Mac 2015</div>
+      <div class="chip" onclick="load('gallon of gas',2020,this)">⛽ Gas 2020</div>
+      <div class="chip" onclick="load('Netflix monthly subscription',2015,this)">📺 Netflix 2015</div>
+      <div class="chip" onclick="load('iPhone',2014,this)">📱 iPhone 2014</div>
+      <div class="chip" onclick="load('median US annual salary',2015,this)">💼 US Salary 2015</div>
+      <div class="chip" onclick="load('1 bedroom apartment in Los Angeles',2016,this)">🎬 1BR LA 2016</div>
+      <div class="chip" onclick="load('Super Bowl 30 second commercial',2015,this)">🏈 Super Bowl Ad 2015</div>
+    </div>
+  </div>
+
+  <div class="loader" id="loader">
+    <div class="spin"></div>
+    <div class="loader-text">Looking Up Price</div>
+    <div class="loader-sub" id="loader-sub">Researching historical data...</div>
+  </div>
+
+  <div class="results" id="results">
+    <div class="divider">The Numbers</div>
+    <div class="res-title" id="r-title">—</div>
+    <div class="res-meta"  id="r-meta">—</div>
+
+    <div class="compare">
+      <div class="col col-usd">
+        <div class="col-tag">💸 Dollar Path</div>
+        <div class="price-era" id="era-usd">THEN</div>
+        <div class="price-amt then" id="usd-then">$0</div>
+        <div class="price-note">average price</div>
+        <div class="sep"></div>
+        <div class="price-era">TODAY (2026)</div>
+        <div class="price-amt now" id="usd-now">$0</div>
+        <div class="price-note" id="usd-note">inflation adjusted</div>
+        <div class="sep"></div>
+        <div class="change">
+          <div class="ch-icon">📉</div>
+          <div><div class="ch-val" id="usd-pct">+0%</div><div class="ch-desc" id="usd-desc">more expensive</div></div>
+        </div>
+      </div>
+      <div class="col col-btc">
+        <div class="col-tag">🟠 Bitcoin Path</div>
+        <div class="price-era" id="era-btc">THEN</div>
+        <div class="price-amt then" id="btc-then">₿0</div>
+        <div class="price-note" id="btc-then-note">at that year's price</div>
+        <div class="sep"></div>
+        <div class="price-era">SAME BTC TODAY</div>
+        <div class="price-amt now" id="btc-now">$0</div>
+        <div class="price-note" id="btc-now-note">at live BTC price</div>
+        <div class="sep"></div>
+        <div class="change">
+          <div class="ch-icon">📈</div>
+          <div><div class="ch-val" id="btc-pct">+0%</div><div class="ch-desc">Bitcoin return</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="stat-lbl">Bitcoin Multiplier</div><div class="stat-val" id="s-mult">—</div></div>
+      <div class="stat"><div class="stat-lbl">Opportunity Cost</div><div class="stat-val" id="s-opp">—</div></div>
+      <div class="stat"><div class="stat-lbl">Dollar Power Lost</div><div class="stat-val" id="s-lost">—</div></div>
+    </div>
+
+    <div class="verdict">
+      <div class="verdict-head">
+        <div class="verdict-label">⚡ The Bitcoin Truth</div>
+        <button class="share-btn" id="share-btn" onclick="shareIt()">𝕏 SHARE ON X</button>
+      </div>
+      <div class="verdict-text" id="verdict">—</div>
+    </div>
+
+    <div class="hist">
+      <div class="hist-title">Year-by-Year — Cost in Bitcoin</div>
+      <table><thead><tr><th>Year</th><th>USD (adj.)</th><th>BTC Price</th><th>Cost in BTC</th><th>Worth Today</th><th>Return</th></tr></thead>
+      <tbody id="tbody"></tbody></table>
+    </div>
+
+    <div class="credit">Built by <a href="https://x.com/aastack" target="_blank" rel="noopener">@aastack</a> · Follow on 𝕏 for more Bitcoin tools 🟠</div>
+  </div>
+
+</div>
+
+<div class="ticker">
+  <div class="t-tag">SATOSHI MACHINE</div>
+  <div class="t-scroll"><div class="t-inner">
+    &nbsp;&nbsp;<span class="o">₿</span> THE DOLLAR HAS LOST 97% OF ITS VALUE SINCE 1913 &nbsp;|&nbsp; BITCOIN HAS NEVER BEEN WORTH ZERO &nbsp;|&nbsp; <span class="o">10,000 BTC BOUGHT 2 PIZZAS IN 2010 · TODAY WORTH $740M</span> &nbsp;|&nbsp; INFLATION IS THEFT. BITCOIN IS THE REMEDY. &nbsp;|&nbsp; <span class="o">BUILT BY @AASTACK ON 𝕏</span> &nbsp;|&nbsp; HARD CAP: 21,000,000 BTC · FOREVER &nbsp;|&nbsp; STACK SATS. SELF-CUSTODY. STAY HUMBLE. &nbsp;|&nbsp; &nbsp;&nbsp;<span class="o">₿</span> THE DOLLAR HAS LOST 97% OF ITS VALUE SINCE 1913 &nbsp;|&nbsp; BITCOIN HAS NEVER BEEN WORTH ZERO &nbsp;|&nbsp; <span class="o">10,000 BTC BOUGHT 2 PIZZAS IN 2010 · TODAY WORTH $740M</span> &nbsp;|&nbsp; INFLATION IS THEFT. BITCOIN IS THE REMEDY. &nbsp;|&nbsp; <span class="o">BUILT BY @AASTACK ON 𝕏</span> &nbsp;|&nbsp; HARD CAP: 21,000,000 BTC · FOREVER &nbsp;|&nbsp; STACK SATS. SELF-CUSTODY. STAY HUMBLE. &nbsp;|&nbsp;
+  </div></div>
+</div>
+
+<script>
+// ── DATA ──
+const BTC = {2010:.08,2011:5.5,2012:8,2013:150,2014:530,2015:280,2016:570,2017:4000,2018:9000,2019:7200,2020:11000,2021:47000,2022:28000,2023:26000,2024:65000};
+const CPI = {2010:1.47,2011:1.42,2012:1.38,2013:1.35,2014:1.33,2015:1.30,2016:1.27,2017:1.24,2018:1.21,2019:1.17,2020:1.13,2021:1.09,2022:1.04,2023:1.01,2024:1.00};
+
+let liveBTC = 74000;
+let lastItem='', lastYear=2015, lastPrice=0;
+
+const $ = id => document.getElementById(id);
+const fU = n => n>=1e9?'$'+(n/1e9).toFixed(2)+'B':n>=1e6?'$'+(n/1e6).toFixed(2)+'M':n>=1000?'$'+Math.round(n).toLocaleString():n>=1?'$'+n.toFixed(2):'$'+n.toFixed(4);
+const fB = n => { if(n>=1) return n.toFixed(4)+' BTC'; const s=Math.round(n*1e8); return s>=1e6?(s/1e6).toFixed(2)+'M sats':s.toLocaleString()+' sats'; };
+const fP = n => (n>=0?'+':'')+Math.round(n).toLocaleString()+'%';
+
+// ── SAND ANIMATION ──
+(function(){
+  const st=document.getElementById('st'), sb=document.getElementById('sb');
+  if(!st||!sb) return;
+  const CYCLE=5000, TOP_H=22, BOT_H=22;
+  function ease(t){return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;}
+  function tick(now){
+    const p=(now%CYCLE)/CYCLE;
+    if(p<.42){const t=ease(p/.42);st.setAttribute('height',Math.max(0,TOP_H*(1-t)));st.setAttribute('y',5+TOP_H*t);sb.setAttribute('height',BOT_H*t);sb.setAttribute('y',53-BOT_H*t);}
+    else if(p<.58){st.setAttribute('height',0);sb.setAttribute('height',BOT_H);}
+    else{const t=ease((p-.58)/.42);st.setAttribute('height',TOP_H*t);st.setAttribute('y',5+TOP_H*(1-t));sb.setAttribute('height',BOT_H*(1-t));sb.setAttribute('y',53-BOT_H*(1-t));}
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+
+// ── FETCH LIVE BTC ──
+async function fetchBTC(){
+  try{const r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');if(r.ok){const d=await r.json();liveBTC=Math.round(d.bitcoin.usd);}}catch(e){}
+}
+
+// ── AI PRICE LOOKUP ──
+async function aiPrice(item, year){
+  const prompt = `What was the typical price in US dollars for "${item}" in ${year} in the United States? If a city is mentioned use that city's data. Give the real average market price — for food use restaurant/store price, real estate use median sale/rent price, luxury goods use average retail, travel use average trip cost, services use average rate, salary use median annual. Respond ONLY with valid JSON: {"price": 1234.56, "description": "specific description", "source": "what this represents", "location": "city or National Average"}`;
+
+  // API key — replace YOUR_KEY_HERE with your key from console.anthropic.com
+  const KEY = 'YOUR_KEY_HERE';
+
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': KEY,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 256,
+      messages: [{ role:'user', content: prompt }]
+    })
+  });
+
+  if (!resp.ok) throw new Error('API ' + resp.status);
+  const d = await resp.json();
+  const txt = d.content.map(c=>c.text||'').join('');
+  const m = txt.match(/\{[\s\S]*?\}/);
+  if (!m) throw new Error('No JSON');
+  const p = JSON.parse(m[0]);
+  if (!p.price || p.price <= 0) throw new Error('Bad price');
+  return p;
+}
+
+// ── LOAD CHIP ──
+function load(item, year, el){
+  $('q').value = item;
+  $('yr').value = String(year);
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  if(el) el.classList.add('active');
+  setTimeout(run, 40);
+}
+
+// ── RUN ──
+async function run(){
+  const item = $('q').value.trim();
+  const year = parseInt($('yr').value);
+  if(!item){ show_err('Please enter an item to look up.'); return; }
+
+  $('err').classList.remove('show');
+  $('results').classList.remove('show');
+  $('loader').classList.add('show');
+  $('loader-sub').textContent = `Looking up "${item}" in ${year}...`;
+  $('btn').disabled = true;
+
+  try {
+    await fetchBTC();
+    const { price, description, source, location } = await aiPrice(item, year);
+    lastItem = item; lastYear = year; lastPrice = price;
+    render(item, year, price, description, source, location);
+  } catch(e) {
+    show_err('⚠ Could not find a price for that item. Try describing it more specifically — e.g. "bottle of Dom Pérignon champagne", "Chanel No. 5 perfume 100ml", "round trip flight to Tokyo".');
+  } finally {
+    $('btn').disabled = false;
+    $('loader').classList.remove('show');
+  }
+}
+
+function show_err(msg){ $('err').textContent=msg; $('err').classList.add('show'); }
+
+// ── RENDER ──
+function render(item, year, price, desc, source, location){
+  const bp  = BTC[year]  || 10000;
+  const inf = CPI[year]  || 1.1;
+  const usdNow   = price * inf;
+  const btcAmt   = price / bp;
+  const btcToday = btcAmt * liveBTC;
+  const usdPct   = (inf - 1) * 100;
+  const btcPct   = ((btcToday - price) / price) * 100;
+  const mult     = btcToday / price;
+  const ppLost   = (1 - 1/inf) * 100;
+  const opp      = btcToday - usdNow;
+  const yrs      = 2026 - year;
+
+  $('r-title').textContent = desc || item;
+  $('r-meta').textContent  = `${location||'National Average'} · ${source||''} · ${year} · BTC at ${fU(bp)} · Live: ${fU(liveBTC)}`;
+  $('era-usd').textContent = `THEN (${year})`;
+  $('era-btc').textContent = `THEN (${year})`;
+  $('usd-then').textContent = fU(price);
+  $('usd-now').textContent  = fU(usdNow);
+  $('usd-note').textContent = `CPI ×${inf.toFixed(2)} since ${year}`;
+  $('usd-pct').textContent  = '+'+usdPct.toFixed(1)+'% more expensive';
+  $('usd-desc').textContent = `dollar buys ${ppLost.toFixed(0)}% less than in ${year}`;
+  $('btc-then').textContent = fB(btcAmt);
+  $('btc-then-note').textContent = `at ${year} price of ${fU(bp)}/BTC`;
+  $('btc-now').textContent  = fU(btcToday);
+  $('btc-now-note').textContent  = `at live price of ${fU(liveBTC)}/BTC`;
+  $('btc-pct').textContent  = fP(btcPct);
+  $('s-mult').textContent   = mult>=1000?Math.round(mult/1000)+'K×':Math.round(mult)+'×';
+  $('s-opp').textContent    = fU(Math.abs(opp));
+  $('s-lost').textContent   = ppLost.toFixed(1)+'%';
+
+  const multDisplay = mult>=1000?(mult/1000).toFixed(1)+'K':Math.round(mult).toLocaleString();
+  $('verdict').innerHTML = `If you had put <strong>${fU(price)}</strong> into Bitcoin in <strong>${year}</strong> instead of spending it on ${(desc||item).toLowerCase()}, that position would be worth <em>${fU(btcToday)}</em> today — a <strong>${multDisplay}× return</strong> in ${yrs} years.<br><br>The dollar version? That same purchase now costs <strong>${fU(usdNow)}</strong> — ${usdPct.toFixed(0)}% more expensive, buying you ${ppLost.toFixed(0)}% less. The gap between those two paths is <strong>${fU(Math.abs(opp))}</strong>. That gap is the tax the Fed collects from everyone who doesn't own hard money. 🟠`;
+
+  // table
+  const rows = Object.keys(BTC).map(Number).filter(y=>y>=year&&y<=2024);
+  $('tbody').innerHTML = rows.map(y=>{
+    const bp2=BTC[y],inf2=CPI[y]||1,usdA=price*(inf2/(CPI[year]||1)),cb=price/bp2,wn=cb*liveBTC,ret=((wn-price)/price)*100;
+    return `<tr><td class="yr">${y}</td><td>${fU(usdA)}</td><td class="bp">${fU(bp2)}</td><td>${fB(cb)}</td><td class="wn">${fU(wn)}</td><td class="${ret>=0?'gp':'gn'}">${fP(ret)}</td></tr>`;
+  }).join('');
+
+  $('results').classList.add('show');
+  setTimeout(()=>$('results').scrollIntoView({behavior:'smooth',block:'start'}),100);
+}
+
+// ── SHARE ──
+function shareIt(){
+  if(!lastItem||!lastPrice) return;
+  const bp=BTC[lastYear]||10000, amt=lastPrice/bp, val=amt*liveBTC, mult=Math.round(val/lastPrice);
+  const tweet=`${lastItem} cost ${fU(lastPrice)} in ${lastYear}.\n\nIf you bought Bitcoin instead → worth ${fU(val)} today. A ${mult}x return.\n\nInflation is theft. Bitcoin is the remedy. 🟠\n\nsatoshimachine.vercel.app`;
+  window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(tweet),'_blank');
+  const b=$('share-btn'); b.textContent='✓ OPENING X...'; b.classList.add('done');
+  setTimeout(()=>{b.innerHTML='𝕏 SHARE ON X';b.classList.remove('done');},2500);
+}
+
+// ── ENTER KEY ──
+$('q').addEventListener('keydown', e=>{ if(e.key==='Enter') run(); });
+
+// ── BOOT ──
+fetchBTC();
+setInterval(fetchBTC, 5*60*1000);
+</script>
+</body>
+</html>
