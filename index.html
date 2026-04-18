@@ -427,32 +427,18 @@ async function fetchBTC(){
 
 // ── AI PRICE LOOKUP ──
 async function aiPrice(item, year){
-  const prompt = `What was the typical price in US dollars for "${item}" in ${year} in the United States? If a city is mentioned use that city's data. Give the real average market price — for food use restaurant/store price, real estate use median sale/rent price, luxury goods use average retail, travel use average trip cost, services use average rate, salary use median annual. Respond ONLY with valid JSON: {"price": 1234.56, "description": "specific description", "source": "what this represents", "location": "city or National Average"}`;
-
-  // API key — replace YOUR_KEY_HERE with your key from console.anthropic.com
-  const KEY = 'YOUR_KEY_HERE';
-
-  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+  const resp = await fetch('/api/price', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': KEY,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
-    },
-    body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 256,
-      messages: [{ role:'user', content: prompt }]
-    })
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ item, year })
   });
 
-  if (!resp.ok) throw new Error('API ' + resp.status);
-  const d = await resp.json();
-  const txt = d.content.map(c=>c.text||'').join('');
-  const m = txt.match(/\{[\s\S]*?\}/);
-  if (!m) throw new Error('No JSON');
-  const p = JSON.parse(m[0]);
+  if (!resp.ok) {
+    const e = await resp.json().catch(()=>({}));
+    throw new Error(e.error || 'API error ' + resp.status);
+  }
+
+  const p = await resp.json();
   if (!p.price || p.price <= 0) throw new Error('Bad price');
   return p;
 }
